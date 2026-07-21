@@ -164,13 +164,13 @@ The project will continue evolving with features such as:
 
 **Michael SAGBO**
 
-[LinkedIn](#)
+[LinkedIn](https://www.linkedin.com/in/michaelsagbo)
 
-[Portfolio](#)
+[Portfolio](https://lesaintspeedy.netlify.app/)
 
-[GitHub](#)
+[GitHub](https://github.com/SAGBO4)
 
-Email
+sagbomichaelmahulicajenus@gmail.com
 
 </td>
 
