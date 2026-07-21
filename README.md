@@ -1,169 +1,234 @@
 # Bitcoin Blood
 
-Plateforme panafricaine de gestion des donneurs de sang. Bitcoin Blood relie
-les donneurs volontaires aux besoins urgents des structures de santé, organise
-les campagnes de don et garantit l'intégrité des données grâce à Bitcoin.
+> **Finding the right blood donor, in the right place, at the right time.**
 
-Projet développé dans le cadre du hackathon **Bitcoin Mastermind 2026**, conçu
-pour rester en production et évoluer au-delà de l'événement.
+Bitcoin Blood is a pan-African platform that connects voluntary blood donors, hospitals, blood banks and humanitarian organizations through a trusted and verifiable ecosystem.
 
-## Sommaire
+Built during the **Bitcoin Mastermind Hackathon 2026**, the project explores how Bitcoin can solve real-world healthcare challenges by improving trust, transparency and responsiveness without exposing sensitive medical information.
 
-- [Fonctionnalités](#fonctionnalités)
-- [Stack technique](#stack-technique)
-- [Prérequis](#prérequis)
-- [Installation](#installation)
-- [Lancement](#lancement)
-- [Scripts disponibles](#scripts-disponibles)
-- [Structure du projet](#structure-du-projet)
-- [Conventions](#conventions)
-- [Workflow Git](#workflow-git)
-- [Documentation](#documentation)
-- [Licence](#licence)
+---
 
-## Fonctionnalités
+## The Challenge
 
-Bitcoin Blood vise à fournir une plateforme complète pour:
+Every day, thousands of people across Africa depend on blood transfusions to survive.
 
-- enregistrer des donneurs de sang volontaires;
-- retrouver rapidement des donneurs compatibles;
-- envoyer des alertes ciblées en cas d'urgence;
-- organiser des campagnes de don de sang;
-- gérer des cartes physiques et numériques vérifiables;
-- conserver des preuves d'intégrité grâce à Bitcoin;
-- intégrer Lightning Network pour de futures récompenses.
+Victims of road accidents.
 
-> Cette base de projet ne contient encore aucune fonctionnalité métier. Elle
-> fournit l'architecture, l'outillage et la documentation nécessaires pour les
-> développer dans de bonnes conditions. Voir [ROADMAP.md](./ROADMAP.md).
+Women facing postpartum hemorrhage.
 
-## Stack technique
+Children living with sickle cell disease.
 
-| Domaine          | Technologie                          |
-| ---------------- | ------------------------------------ |
-| Framework        | Next.js 16 (App Router), React 19    |
-| Langage          | TypeScript                           |
-| Base de données  | PostgreSQL via Supabase              |
-| ORM              | Drizzle ORM                          |
-| Authentification | Supabase Auth                        |
-| Stockage         | Supabase Storage                     |
-| Temps réel       | Supabase Realtime                    |
-| Validation       | Zod                                  |
-| Styles           | Tailwind CSS v4                      |
-| Composants UI    | shadcn/ui, class-variance-authority  |
-| Icônes           | Lucide React                         |
-| État client      | Zustand                              |
-| Requêtes serveur | TanStack Query                       |
-| Tests            | Vitest, Testing Library              |
-| Qualité          | ESLint, Prettier, Husky, lint-staged |
+Patients undergoing emergency surgeries.
 
-## Prérequis
+Yet, despite the generosity of voluntary donors, one critical challenge remains:
 
-- Node.js >= 20.9 (voir [.nvmrc](./.nvmrc))
-- npm >= 10
-- Un projet Supabase (base PostgreSQL, Auth, Storage)
+**finding a compatible donor fast enough.**
 
-## Installation
+Today, many healthcare systems still rely on fragmented donor databases, manual processes and disconnected institutions. As a result, precious time is lost searching for compatible donors during emergencies.
 
-```bash
-git clone <url-du-depot>
-cd bitcoin-blood
-npm install
-cp .env.example .env
-```
+At the same time, regular donors receive little recognition for their commitment, while existing donor cards and certificates can easily be forged or altered.
 
-Renseignez ensuite les variables d'environnement dans `.env`. La liste complète
-et leur rôle sont décrits dans [.env.example](./.env.example).
+Trust, coordination and accessibility remain major obstacles.
 
-## Lancement
+---
 
-```bash
-# Démarrer le serveur de développement
-npm run dev
+## Our Vision
 
-# Synchroniser le schéma avec la base de données
-npm run db:push
-```
+We believe that saving lives should never depend on outdated systems.
 
-L'application est disponible sur http://localhost:3000.
+Bitcoin Blood aims to build a trusted network where healthcare institutions collaborate instead of operating in isolation.
 
-## Scripts disponibles
+Where voluntary donors can be found quickly.
 
-| Script                  | Description                                           |
-| ----------------------- | ----------------------------------------------------- |
-| `npm run dev`           | Démarre le serveur de développement                   |
-| `npm run build`         | Compile l'application pour la production              |
-| `npm run start`         | Démarre l'application compilée                        |
-| `npm run lint`          | Analyse le code avec ESLint                           |
-| `npm run lint:fix`      | Corrige automatiquement les problèmes ESLint          |
-| `npm run format`        | Formate le code avec Prettier                         |
-| `npm run format:check`  | Vérifie le formatage sans modifier les fichiers       |
-| `npm run typecheck`     | Vérifie les types TypeScript                          |
-| `npm run test`          | Exécute la suite de tests                             |
-| `npm run test:watch`    | Exécute les tests en mode interactif                  |
-| `npm run test:coverage` | Génère un rapport de couverture                       |
-| `npm run validate`      | Enchaîne typecheck, lint et vérification du formatage |
-| `npm run db:generate`   | Génère les migrations Drizzle                         |
-| `npm run db:migrate`    | Applique les migrations                               |
-| `npm run db:push`       | Synchronise le schéma avec la base                    |
-| `npm run db:studio`     | Ouvre Drizzle Studio                                  |
+Where blood donation campaigns reach the right people.
 
-## Structure du projet
+Where donor information can be verified instantly.
 
-```
-src/
-  app/            Routes, layouts et Route Handlers (App Router)
-  components/     Composants partagés (ui, layout)
-  modules/        Domaines métier indépendants
-  lib/            Cœur technique (env, api, db, supabase, utils)
-  config/         Configuration applicative
-  providers/      Providers React globaux
-  test/           Configuration des tests
-```
+Where trust is guaranteed through cryptography instead of paperwork.
 
-Le détail complet est documenté dans
-[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md).
+Our goal is not to replace existing blood management systems.
 
-## Conventions
+Our goal is to make them smarter, faster and more trustworthy.
 
-- Composants en `PascalCase`, variables en `camelCase`, dossiers en
-  `kebab-case`, tables PostgreSQL en `snake_case`, constantes en
-  `UPPER_SNAKE_CASE`.
-- Aucune logique métier dans les composants React: elle vit dans les services
-  des modules.
-- Toute entrée est validée avec Zod; aucune confiance n'est accordée aux
-  données du client.
-- Toutes les routes API sont préfixées par `/api/v1/` et suivent une enveloppe
-  de réponse normalisée.
+---
 
-Les règles complètes sont détaillées dans
-[docs/coding-guidelines.md](./docs/coding-guidelines.md).
+## Why Bitcoin?
 
-## Workflow Git
+Bitcoin Blood does **not** store medical information on the blockchain.
 
-Le projet suit un flux `feature -> develop -> main`. Les branches `main` et
-`develop` sont protégées.
+Medical records remain private and securely stored within the application.
 
-```
-feature/nom-court-en-kebab-case
-fix/nom-court-en-kebab-case
-docs/nom-court-en-kebab-case
-refactor/nom-court-en-kebab-case
-chore/nom-court-en-kebab-case
-```
+Bitcoin is only used to prove that important information has never been altered.
 
-Le processus de contribution est décrit dans
-[CONTRIBUTING.md](./CONTRIBUTING.md).
+This provides a decentralized layer of trust without compromising patient privacy.
 
-## Documentation
+Through Bitcoin, the platform can:
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — décisions et principes d'architecture
-- [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) — arborescence détaillée
-- [ROADMAP.md](./ROADMAP.md) — feuille de route
-- [SECURITY.md](./SECURITY.md) — politique de sécurité
-- [CHANGELOG.md](./CHANGELOG.md) — historique des versions
-- [docs/](./docs) — documentation technique approfondie
+* verify the authenticity of donor cards;
+* guarantee the integrity of donor records;
+* strengthen trust between healthcare institutions;
+* prepare future incentive mechanisms through the Lightning Network.
 
-## Licence
+Bitcoin becomes a trust infrastructure rather than a medical database.
 
-Distribué sous licence MIT. Voir [LICENSE](./LICENSE).
+---
+
+## Key Features
+
+### Digital Donor Registry
+
+Every donor has a secure profile containing essential medical and contact information while respecting privacy and data protection.
+
+### Emergency Donor Matching
+
+Healthcare professionals can instantly search for compatible donors based on blood type, availability and geographic proximity.
+
+### Smart Notifications
+
+Emergency alerts are sent only to eligible donors within a defined geographic area, avoiding unnecessary notifications.
+
+### Verifiable Donor Card
+
+Every donor receives a digital identity that can be verified through a QR Code backed by Bitcoin cryptographic proofs.
+
+### Blood Donation Campaign Management
+
+Organizations can create, manage and monitor blood donation campaigns while improving donor engagement.
+
+### Donor Recognition
+
+The platform encourages regular donations through recognition mechanisms designed to evolve into Bitcoin Lightning rewards.
+
+---
+
+## Who Is It For?
+
+Bitcoin Blood has been designed for:
+
+* National Blood Transfusion Centers
+* Public and Private Hospitals
+* Humanitarian Organizations
+* Blood Donation Associations
+* Voluntary Blood Donors
+* Public Health Authorities
+
+---
+
+## Expected Impact
+
+Bitcoin Blood contributes to:
+
+* reducing the time required to locate compatible donors;
+* improving collaboration between healthcare institutions;
+* increasing trust in donor information;
+* encouraging regular blood donation;
+* building a reliable and scalable donor network across Africa.
+
+Our ambition goes beyond the hackathon.
+
+We envision a solution capable of supporting healthcare systems across the continent.
+
+---
+
+## Hackathon
+
+Bitcoin Blood was created during the **Bitcoin Mastermind Hackathon 2026**.
+
+The hackathon provided an opportunity to demonstrate how Bitcoin technologies can address practical societal challenges beyond finance.
+
+The current version represents the foundation of a broader vision that can continue evolving into a production-ready platform.
+
+---
+
+
+## Future Roadmap
+
+The project will continue evolving with features such as:
+
+* Regional collaboration between blood banks.
+* Mobile-first donor experience.
+* Lightning-based donor rewards.
+* Offline verification capabilities.
+* Integration with national healthcare systems.
+* Multi-country deployment across Africa.
+
+---
+
+# Meet the Team
+
+<table>
+<tr>
+<td width="25%" align="center">
+
+### Contributor 1
+
+**Michael SAGBO**
+
+[LinkedIn](#)
+
+[Portfolio](#)
+
+[GitHub](#)
+
+Email
+
+</td>
+
+<td width="25%" align="center">
+
+### Contributor 2
+
+**Lauret CHACHA**
+
+[LinkedIn](http://www.linkedin.com/in/lauret-chacha)
+
+[Portfolio](https://linkedin.com/in/lauret-chacha)
+
+[GitHub](https://github.com/Handsomeboy990)
+
+lauret.chacha@epitech.eu
+
+</td>
+
+<td width="25%" align="center">
+
+### Contributor 3
+
+**Name**
+
+[LinkedIn](#)
+
+[Portfolio](#)
+
+[GitHub](#)
+
+Email
+
+</td>
+
+<td width="25%" align="center">
+
+### Contributor 4
+
+**Name**
+
+[LinkedIn](#)
+
+[Portfolio](#)
+
+[GitHub](#)
+
+Email
+
+</td>
+
+</tr>
+</table>
+
+---
+
+## License
+
+This project was created for the **Bitcoin Mastermind Hackathon 2026**.
+
+Future licensing terms will be defined as the project evolves.
