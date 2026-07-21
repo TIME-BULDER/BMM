@@ -160,7 +160,7 @@ The project will continue evolving with features such as:
 <tr>
 <td width="25%" align="center">
 
-### Contributor 1
+### Développeur web fullstack
 
 **Michael SAGBO**
 
@@ -174,9 +174,9 @@ sagbomichaelmahulicajenus@gmail.com
 
 </td>
 
-<td width="25%" align="center">
+<td width="35%" align="center">
 
-### Contributor 2
+### Développeur web fullstack
 
 **Lauret CHACHA**
 
@@ -192,25 +192,25 @@ lauret.chacha@epitech.eu
 
 <td width="25%" align="center">
 
-### Contributor 3
+### Monteur IA
 
-**Name**
+**Jaurès HOUNGUEVOU**
 
 [LinkedIn](#)
 
 [Portfolio](#)
 
-[GitHub](#)
++229 96 21 76 04 
 
-Email
+jaureshounguevou85@gmail.com
 
 </td>
 
 <td width="25%" align="center">
 
-### Contributor 4
+### Membre
 
-**Name**
+**José AFOUDJI**
 
 [LinkedIn](#)
 
