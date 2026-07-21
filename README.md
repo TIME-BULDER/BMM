@@ -12,7 +12,7 @@ Built during the **Bitcoin Mastermind Hackathon 2026**, the project explores how
 
 Every day, thousands of people across Africa depend on blood transfusions to survive.
 
-Victims of road accidents.
+Victims of road accidents .
 
 Women facing postpartum hemorrhage.
 
