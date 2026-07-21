@@ -1,0 +1,1208 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Bitcoin Blood API",
+    "description": "Plateforme de gestion de donneurs de sang avec authentification d'organisation, recherche intelligente (Blood Emergency AI), horodatage sur la blockchain Bitcoin (OpenTimestamps) et récompenses via Lightning Network.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Serveur API local / relatif"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Vérification de la santé du système",
+        "description": "Vérifie si le serveur est en ligne et répond correctement. Utile pour les sondes Kubernetes ou d'infrastructure.",
+        "responses": {
+          "200": {
+            "description": "Le serveur est fonctionnel.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessEnvelope" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "status": { "type": "string", "example": "ok" }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Inscription d'une organisation",
+        "description": "Permet d'inscrire une nouvelle organisation (hôpital, ONG, centre de collecte) et de créer le compte de son administrateur.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password",
+                  "name",
+                  "type",
+                  "latitude",
+                  "longitude",
+                  "city",
+                  "contactEmail"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "admin@hopital-nord.org"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "motdepasseSecurise123!"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "example": "Hôpital Nord"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["hospital", "ong", "collect"],
+                    "example": "hospital"
+                  },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90,
+                    "example": 14.6937
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180,
+                    "example": -17.4441
+                  },
+                  "city": { "type": "string", "example": "Dakar" },
+                  "contactEmail": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "contact@hopital-nord.org"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Organisation créée avec succès.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "400": {
+            "description": "Requête invalide.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "422": {
+            "description": "Données de validation incorrectes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Connexion d'une organisation",
+        "description": "Authentifie un administrateur d'organisation et démarre une session.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "admin@hopital-nord.org"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "motdepasseSecurise123!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion réussie.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Identifiants invalides.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Déconnexion",
+        "description": "Ferme la session de l'utilisateur actif.",
+        "responses": {
+          "200": {
+            "description": "Déconnexion réussie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessEnvelope" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "success": { "type": "boolean", "example": true }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Profil connecté",
+        "description": "Renvoie les informations de l'organisation et de l'utilisateur de la session active.",
+        "responses": {
+          "200": {
+            "description": "Profil de l'utilisateur connecté.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/donors": {
+      "post": {
+        "summary": "Inscription d'un donneur",
+        "description": "Enregistre un citoyen comme donneur de sang en vérifiant sa signature Bitcoin BIP-322 et en ancrant son profil sur la blockchain via OpenTimestamps.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "phoneNumber",
+                  "password",
+                  "bitcoinAddress",
+                  "profileHash",
+                  "signature",
+                  "bloodType",
+                  "city",
+                  "latitude",
+                  "longitude",
+                  "age"
+                ],
+                "properties": {
+                  "firstName": { "type": "string", "example": "Moussa" },
+                  "lastName": { "type": "string", "example": "Diop" },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "moussa.diop@email.com"
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "+221771234567"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "passdonor123!"
+                  },
+                  "bitcoinAddress": {
+                    "type": "string",
+                    "example": "tb1qrp33g08dcf3nt3kmzk74jelgc7m2pf9f3qc486"
+                  },
+                  "profileHash": {
+                    "type": "string",
+                    "length": 64,
+                    "example": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  },
+                  "signature": {
+                    "type": "string",
+                    "example": "G2N6...signature...=="
+                  },
+                  "bloodType": {
+                    "type": "string",
+                    "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+                    "example": "O-"
+                  },
+                  "city": { "type": "string", "example": "Dakar" },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90,
+                    "example": 14.7167
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180,
+                    "example": -17.4677
+                  },
+                  "age": {
+                    "type": "number",
+                    "minimum": 18,
+                    "maximum": 120,
+                    "example": 28
+                  },
+                  "available": { "type": "boolean", "default": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Donneur inscrit avec succès.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "400": {
+            "description": "Signature BIP-322 invalide ou autre erreur de requête.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Zod échouée.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Lister les donneurs validés",
+        "description": "Récupère les donneurs validés (ayant réalisé au moins un don). Accès réservé aux organisations connectées.",
+        "responses": {
+          "200": {
+            "description": "Liste des donneurs validés.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/donors/{id}/validate": {
+      "patch": {
+        "summary": "Valider un donneur",
+        "description": "Confirme que le donneur a effectué un don physique. Seuls les hôpitaux ou admins authentifiés peuvent réaliser cette action.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID du donneur",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donneur validé avec succès.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "400": {
+            "description": "Format d'ID invalide.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "403": {
+            "description": "Non autorisé (pas associé à une organisation).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "404": {
+            "description": "Donneur introuvable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/donors/{id}/offline-identity": {
+      "get": {
+        "summary": "Obtenir l'identité souveraine signée du donneur (BIP-322)",
+        "description": "Génère un payload signé par la clinique contenant le groupe sanguin et l'identifiant du donneur, vérifiable hors-ligne.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID du donneur",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Identité hors-ligne générée avec succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessEnvelope" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "message": {
+                              "type": "string",
+                              "example": "Identité hors-ligne générée avec succès."
+                            },
+                            "identity": {
+                              "type": "object",
+                              "properties": {
+                                "payload": {
+                                  "type": "object",
+                                  "properties": {
+                                    "donorId": {
+                                      "type": "string",
+                                      "format": "uuid"
+                                    },
+                                    "bloodType": { "type": "string" },
+                                    "timestamp": {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    },
+                                    "issuer": { "type": "string" }
+                                  }
+                                },
+                                "profileHash": { "type": "string" },
+                                "clinicAddress": { "type": "string" },
+                                "signature": { "type": "string" }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "404": {
+            "description": "Donneur introuvable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verify/{id}": {
+      "get": {
+        "summary": "Vérification publique de la carte donneur",
+        "description": "Récupère le statut d'intégrité de la carte et du profil du donneur via OpenTimestamps/Bitcoin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID du donneur",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statut de vérification du donneur.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "400": {
+            "description": "Format d'ID invalide.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "404": {
+            "description": "Donneur introuvable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Récompenser un donneur",
+        "description": "Envoie une récompense suite à son don de sang. Peut être attribué via une facture Lightning (Breez), un numéro Mobile Money (Izichange), ou un système de points immuable. Limite de sécurité : une récompense tous les 60 jours.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID du donneur",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bolt11Invoice": {
+                    "type": "string",
+                    "minLength": 10,
+                    "description": "Facture BOLT11 pour paiement Lightning",
+                    "example": "lnbc10u1pvjl..."
+                  },
+                  "momoNumber": {
+                    "type": "string",
+                    "minLength": 8,
+                    "description": "Numéro Mobile Money pour cashout Izichange",
+                    "example": "+22997000000"
+                  },
+                  "awardPoints": {
+                    "type": "boolean",
+                    "description": "Si vrai, attribue des points de fidélité à la place d'un paiement",
+                    "example": true
+                  },
+                  "satsAmount": {
+                    "type": "number",
+                    "minimum": 1,
+                    "default": 1000,
+                    "example": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Récompense attribuée et facture payée avec succès.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "400": {
+            "description": "Format d'ID ou facture invalide.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "403": {
+            "description": "Non autorisé (pas associé à une organisation).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "404": {
+            "description": "Donneur introuvable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "409": {
+            "description": "Le donneur a déjà été récompensé dans les 60 derniers jours.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "500": {
+            "description": "Échec de la transaction Lightning.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Recherche de compatibilité donneurs (Urgences)",
+        "description": "Permet de rechercher des donneurs compatibles et proches de la localisation GPS spécifiée. Deux modes existent : classique (tri strict par distance) et intelligent (Blood Emergency AI).",
+        "parameters": [
+          {
+            "name": "bloodType",
+            "in": "query",
+            "required": true,
+            "description": "Groupe sanguin requis",
+            "schema": {
+              "type": "string",
+              "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+            }
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "description": "Latitude de la recherche",
+            "schema": { "type": "number", "minimum": -90, "maximum": 90 }
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": true,
+            "description": "Longitude de la recherche",
+            "schema": { "type": "number", "minimum": -180, "maximum": 180 }
+          },
+          {
+            "name": "ai",
+            "in": "query",
+            "required": false,
+            "description": "Activer le matching intelligent AI ('true' ou 'false')",
+            "schema": { "type": "string", "enum": ["true", "false"] }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des donneurs compatibles trouvés.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessEnvelope" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "success": { "type": "boolean", "example": true },
+                            "ai": { "type": "boolean", "example": true },
+                            "matches": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": { "type": "string", "format": "uuid" },
+                                  "firstName": { "type": "string" },
+                                  "lastName": { "type": "string" },
+                                  "phoneNumber": { "type": "string" },
+                                  "bloodType": { "type": "string" },
+                                  "city": { "type": "string" },
+                                  "distance": {
+                                    "type": "number",
+                                    "description": "Distance en km"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Paramètres de recherche invalides.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/emergencies": {
+      "post": {
+        "summary": "Déclarer une alerte d'urgence",
+        "description": "Déclare une alerte critique de besoin de sang. L'identifiant de l'hôpital est automatiquement rattaché depuis la session connectée.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["bloodType", "city", "latitude", "longitude"],
+                "properties": {
+                  "bloodType": {
+                    "type": "string",
+                    "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+                    "example": "O-"
+                  },
+                  "quantityNeeded": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 1,
+                    "example": 5
+                  },
+                  "city": { "type": "string", "example": "Dakar" },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90,
+                    "example": 14.6937
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180,
+                    "example": -17.4441
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Urgence créée avec succès.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "403": {
+            "description": "Accès refusé. Non associé à une organisation.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "422": {
+            "description": "Erreur de validation Zod.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Lister les alertes d'urgence",
+        "description": "Récupère la liste des alertes actives. Si un 'hospitalId' est passé en paramètre, filtre sur cet hôpital. Pour les administrateurs non-super-admin, l'accès est limité à leur propre hôpital.",
+        "parameters": [
+          {
+            "name": "hospitalId",
+            "in": "query",
+            "required": false,
+            "description": "UUID d'un hôpital pour filtrer",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des alertes d'urgences.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "403": {
+            "description": "Accès interdit à un hôpital autre que le vôtre.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/emergencies/{id}": {
+      "get": {
+        "summary": "Obtenir les détails d'une urgence",
+        "description": "Récupère les détails d'une urgence spécifique à l'aide de son ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID de l'urgence",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Détails de l'urgence.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "400": {
+            "description": "Format d'ID invalide.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "404": {
+            "description": "Urgence introuvable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Mettre à jour le statut d'une urgence",
+        "description": "Change le statut d'une urgence active (ex: vers 'resolved' ou 'cancelled'). Action limitée à l'organisation créatrice ou aux super-admins.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID de l'urgence",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["active", "resolved", "cancelled"],
+                    "example": "resolved"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Urgence mise à jour avec succès.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "400": {
+            "description": "Requête invalide.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "403": {
+            "description": "Accès interdit. Seul le créateur ou super admin peut modifier.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "404": {
+            "description": "Urgence introuvable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer une urgence",
+        "description": "Supprime définitivement une alerte d'urgence. Action limitée à l'organisation créatrice ou aux super-admins.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID de l'urgence",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Urgence supprimée avec succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/SuccessEnvelope" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "success": { "type": "boolean", "example": true }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Accès interdit.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "404": {
+            "description": "Urgence introuvable.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/campaigns": {
+      "post": {
+        "summary": "Créer une campagne de don",
+        "description": "Démarre une nouvelle campagne de collecte de sang (ciblée ou générale). L'identifiant de l'hôpital est déduit de la session.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "type", "city", "latitude", "longitude"],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 255,
+                    "example": "Collecte Annuelle Dakar Plateau"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["targeted", "general"],
+                    "example": "targeted"
+                  },
+                  "targetBloodType": {
+                    "type": "string",
+                    "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+                    "example": "O-",
+                    "description": "Requis si type est 'targeted'"
+                  },
+                  "city": { "type": "string", "example": "Dakar" },
+                  "latitude": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90,
+                    "example": 14.6937
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "minimum": -180,
+                    "maximum": 180,
+                    "example": -17.4441
+                  },
+                  "radiusKm": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 500,
+                    "default": 20,
+                    "example": 15
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Campagne créée avec succès.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "403": {
+            "description": "Accès refusé. Non associé à une organisation.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Zod échouée.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Lister les campagnes de don",
+        "description": "Récupère les campagnes de don de l'organisation connectée (ou toutes pour un super-admin).",
+        "parameters": [
+          {
+            "name": "hospitalId",
+            "in": "query",
+            "required": false,
+            "description": "Filtrer sur un hôpital (super admin uniquement)",
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des campagnes de don.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorEnvelope" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SuccessEnvelope": {
+        "type": "object",
+        "required": ["data", "meta"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Contenu métier de la réponse."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Métadonnées de la réponse.",
+            "example": {}
+          }
+        }
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "example": "unauthorized" },
+              "message": {
+                "type": "string",
+                "example": "Authentification requise."
+              },
+              "details": { "type": "object", "nullable": true, "example": null }
+            }
+          }
+        }
+      },
+      "ValidationErrorEnvelope": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["code", "message", "details"],
+            "properties": {
+              "code": { "type": "string", "example": "validation_error" },
+              "message": { "type": "string", "example": "Données invalides." },
+              "details": {
+                "type": "object",
+                "properties": {
+                  "issues": {
+                    "type": "object",
+                    "properties": {
+                      "fieldErrors": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "example": {
+                          "email": ["Adresse email invalide"],
+                          "password": [
+                            "Le mot de passe doit contenir au moins 8 caractères"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
