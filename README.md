@@ -170,7 +170,7 @@ The project will continue evolving with features such as:
 
 [GitHub](https://github.com/SAGBO4)
 
-sagbomichaelmahulicajenus@gmail.com
+michael.sagbo@epitech.eu
 
 </td>
 
