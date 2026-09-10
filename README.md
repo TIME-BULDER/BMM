@@ -36,7 +36,7 @@ Trust, coordination and accessibility remain major obstacles.
 
 We believe that saving lives should never depend on outdated systems.
 
-Bitcoin Blood aims to build a trusted network where healthcare institutions collaborate instead of operating in isolation.
+HEMORA aims to build a trusted network where healthcare institutions collaborate instead of operating in isolation.
 
 Where voluntary donors can be found quickly.
 
@@ -54,7 +54,7 @@ Our goal is to make them smarter, faster and more trustworthy.
 
 ## Why Bitcoin?
 
-Bitcoin Blood does **not** store medical information on the blockchain.
+HEMORA does **not** store medical information on the blockchain.
 
 Medical records remain private and securely stored within the application.
 
