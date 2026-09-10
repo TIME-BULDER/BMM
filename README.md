@@ -1,8 +1,8 @@
-# Bitcoin Blood
+# HEMORA - ex Bitcoin Blood
 
 > **Finding the right blood donor, in the right place, at the right time.**
 
-Bitcoin Blood is a pan-African platform that connects voluntary blood donors, hospitals, blood banks and humanitarian organizations through a trusted and verifiable ecosystem.
+HEMORA is a pan-African platform that connects voluntary blood donors, hospitals, blood banks and humanitarian organizations through a trusted and verifiable ecosystem.
 
 Built during the **Bitcoin Mastermind Hackathon 2026**, the project explores how Bitcoin can solve real-world healthcare challenges by improving trust, transparency and responsiveness without exposing sensitive medical information.
 
@@ -103,7 +103,7 @@ The platform encourages regular donations through recognition mechanisms designe
 
 ## Who Is It For?
 
-Bitcoin Blood has been designed for:
+HEMORA has been designed for:
 
 * National Blood Transfusion Centers
 * Public and Private Hospitals
@@ -116,7 +116,7 @@ Bitcoin Blood has been designed for:
 
 ## Expected Impact
 
-Bitcoin Blood contributes to:
+HEMORA contributes to:
 
 * reducing the time required to locate compatible donors;
 * improving collaboration between healthcare institutions;
@@ -132,7 +132,7 @@ We envision a solution capable of supporting healthcare systems across the conti
 
 ## Hackathon
 
-Bitcoin Blood was created during the **Bitcoin Mastermind Hackathon 2026**.
+HEMORA was created during the **Bitcoin Mastermind Hackathon 2026**.
 
 The hackathon provided an opportunity to demonstrate how Bitcoin technologies can address practical societal challenges beyond finance.
 
